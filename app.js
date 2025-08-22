@@ -100,16 +100,35 @@ db.auth.onAuthStateChange(async (event, session) => {
 // --- Game Initialization ---
 async function initializeGame() {
     if (!currentUser) return;
-    
-    // LỖI NẰM Ở ĐÂY: Dòng db.removeAllChannels() đã được xóa khỏi đây.
-    // Nó chỉ nên được gọi khi người dùng thực sự đăng xuất.
 
-    const { data } = await db.from('profiles').select().eq('id', currentUser.id).single();
-    if (!data) return db.auth.signOut(); // Nếu không có profile, đăng xuất cho an toàn
+    // Hàm để lấy profile, sẽ thử lại vài lần nếu chưa có
+    const fetchProfile = async (retries = 5) => {
+        const { data } = await db.from('profiles').select().eq('id', currentUser.id).single();
+        if (data) {
+            return data;
+        }
+        if (retries > 0) {
+            // Nếu không tìm thấy profile, đợi 500ms và thử lại
+            console.log(`Profile not found, retrying... (${retries} attempts left)`);
+            await new Promise(res => setTimeout(res, 500));
+            return fetchProfile(retries - 1);
+        }
+        return null; // Trả về null nếu vẫn không có sau các lần thử
+    };
+
+    currentProfile = await fetchProfile();
+
+    // Nếu sau nhiều lần thử vẫn không có profile, lúc này mới đăng xuất
+    if (!currentProfile) {
+        alert("Không thể tải được thông tin người dùng. Vui lòng thử lại.");
+        return db.auth.signOut();
+    }
     
-    currentProfile = data;
     document.getElementById('user-display-name').textContent = currentProfile.username;
     document.getElementById('user-balance').textContent = currentProfile.balance.toLocaleString('vi-VN');
+    
+    // Hủy các kênh cũ trước khi tạo mới để tránh trùng lặp
+    db.removeAllChannels();
     
     // Khởi tạo các kết nối realtime
     listenToProfileChanges();
