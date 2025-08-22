@@ -1,8 +1,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// THAY THẾ CÁC GIÁ TRỊ NÀY BẰNG THÔNG TIN CỦA BẠN
-const SUPABASE_URL = 'https://kbsrnizisacobvyupabk.supabase.co'; // URL của bạn
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtic3JuaXppc2Fjb2J2eXVwYWJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODAzODAsImV4cCI6MjA3MTQ1NjM4MH0.qaprOno7D7s7l-pfuz3WqVG7-5yTh_GpGsIp-FkiuTE'; // Anon key của bạn
+// THÔNG TIN KẾT NỐI CỦA BẠN
+const SUPABASE_URL = 'https://kbsrnizisacobvyupabk.supabase.co'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtic3JuaXppc2Fjb2J2eXVwYWJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODAzODAsImV4cCI6MjA3MTQ1NjM4MH0.qaprOno7D7s7l-pfuz3WqVG7-5yTh_GpGsIp-FkiuTE';
 
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -79,17 +79,20 @@ document.getElementById('logout-button').addEventListener('click', () => {
 db.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user || null;
 
-    if (event === 'SIGNED_IN' && user) {
-        currentUser = user;
-        await initializeGame();
-        authScreen.classList.add('hidden');
-        gameScreen.classList.remove('hidden');
-    } else if (event === 'SIGNED_OUT') {
+    // This part handles session loading, login, and logout
+    if (user) {
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+            currentUser = user;
+            await initializeGame();
+            authScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+        }
+    } else { // User is null
         currentUser = null;
         currentProfile = null;
         authScreen.classList.remove('hidden');
         gameScreen.classList.add('hidden');
-        // Hủy tất cả các kết nối realtime khi đăng xuất
+        // Hủy tất cả các kết nối realtime chỉ khi đăng xuất
         db.removeAllChannels();
     }
 });
@@ -98,10 +101,12 @@ db.auth.onAuthStateChange(async (event, session) => {
 async function initializeGame() {
     if (!currentUser) return;
     
-    // Hủy các kênh cũ trước khi tạo mới để tránh trùng lặp khi tải lại trang
-    db.removeAllChannels();
+    // LỖI NẰM Ở ĐÂY: Dòng db.removeAllChannels() đã được xóa khỏi đây.
+    // Nó chỉ nên được gọi khi người dùng thực sự đăng xuất.
 
     const { data } = await db.from('profiles').select().eq('id', currentUser.id).single();
+    if (!data) return db.auth.signOut(); // Nếu không có profile, đăng xuất cho an toàn
+    
     currentProfile = data;
     document.getElementById('user-display-name').textContent = currentProfile.username;
     document.getElementById('user-balance').textContent = currentProfile.balance.toLocaleString('vi-VN');
