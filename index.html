@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tài Xỉu - Supabase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div id="auth-screen" class="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-xl shadow-lg">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-white">Chào Mừng Bạn</h1>
+            <p id="auth-mode-label" class="text-gray-400">Đăng nhập để tiếp tục</p>
+        </div>
+        <div id="auth-forms">
+            <form id="login-form" class="space-y-4">
+                <input type="email" id="login-email" placeholder="Email" class="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                <input type="password" id="login-password" placeholder="Mật khẩu" class="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                <button type="submit" class="w-full px-4 py-2 font-bold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors">Đăng Nhập</button>
+            </form>
+            <form id="register-form" class="hidden space-y-4">
+                <input type="text" id="register-username" placeholder="Tên người dùng (viết liền, không dấu)" class="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required pattern="[a-zA-Z0-9_]+">
+                <input type="email" id="register-email" placeholder="Email" class="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                <input type="password" id="register-password" placeholder="Mật khẩu" class="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                <button type="submit" class="w-full px-4 py-2 font-bold text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">Đăng Ký</button>
+            </form>
+        </div>
+        <p id="auth-error" class="text-sm text-red-400 text-center h-4"></p>
+        <p class="text-sm text-center text-gray-400">
+            <span id="toggle-text">Chưa có tài khoản?</span>
+            <a href="#" id="toggle-auth-mode" class="font-medium text-indigo-400 hover:underline">Đăng ký ngay</a>
+        </p>
+    </div>
+
+    <div id="game-screen" class="hidden w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+        <header class="flex flex-wrap justify-between items-center mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
+             <div class="flex items-center space-x-4">
+                 <i class="fas fa-user-circle text-3xl text-indigo-400"></i>
+                <div>
+                    <h1 class="text-xl font-bold text-white">Xin chào, <span id="user-display-name"></span></h1>
+                    <p class="text-sm text-gray-400">Chúc bạn may mắn!</p>
+                </div>
+            </div>
+            <div class="text-center mt-4 md:mt-0">
+                <p class="text-sm text-gray-400">Số dư</p>
+                <p class="text-2xl font-bold text-yellow-400"><i class="fas fa-coins"></i> <span id="user-balance">0</span></p>
+            </div>
+            <button id="logout-button" class="px-4 py-2 mt-4 md:mt-0 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
+                <i class="fas fa-sign-out-alt mr-2"></i>Đăng Xuất
+            </button>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 p-6 bg-gray-800 rounded-xl shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Phiên #<span id="session-id">...</span></h2>
+                    <div class="text-center">
+                        <p class="text-sm text-gray-400">Kết quả phiên trước</p>
+                        <p id="last-result" class="text-lg font-bold">-</p>
+                    </div>
+                </div>
+
+                <div class="relative flex flex-col items-center justify-center h-64 mb-6 bg-gray-900 rounded-lg overflow-hidden">
+                    <div id="countdown-container" class="z-10 text-center">
+                        <p class="text-gray-400">Thời gian đặt cược</p>
+                        <p id="countdown-timer" class="text-6xl font-bold text-white">30</p>
+                    </div>
+                     <div id="dice-result-container" class="hidden z-10 text-center">
+                         <p class="text-gray-400">Kết quả</p>
+                         <p id="dice-total" class="text-6xl font-bold text-white"></p>
+                     </div>
+                    <div class="absolute inset-0 flex items-center justify-center space-x-4">
+                        <div id="dice1" class="dice"></div>
+                        <div id="dice2" class="dice"></div>
+                        <div id="dice3" class="dice"></div>
+                    </div>
+                </div>
+
+                <div id="betting-controls">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <button id="bet-tai-button" class="bet-choice-button p-6 text-3xl font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all transform hover:scale-105">TÀI</button>
+                        <button id="bet-xiu-button" class="bet-choice-button p-6 text-3xl font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all transform hover:scale-105">XỈU</button>
+                    </div>
+                    <p class="text-center text-gray-400 mb-2">Chọn mức cược</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button class="bet-amount-button w-full py-3 font-semibold bg-gray-700 rounded-md hover:bg-yellow-500 hover:text-gray-900 transition-colors" data-amount="100000">100K</button>
+                        <button class="bet-amount-button w-full py-3 font-semibold bg-gray-700 rounded-md hover:bg-yellow-500 hover:text-gray-900 transition-colors" data-amount="1000000">1M</button>
+                        <button class="bet-amount-button w-full py-3 font-semibold bg-gray-700 rounded-md hover:bg-yellow-500 hover:text-gray-900 transition-colors" data-amount="10000000">10M</button>
+                        <button class="bet-amount-button w-full py-3 font-semibold bg-gray-700 rounded-md hover:bg-yellow-500 hover:text-gray-900 transition-colors" data-amount="50000000">50M</button>
+                    </div>
+                    <div id="bet-message" class="text-center mt-4 h-5 text-green-400 font-semibold"></div>
+                </div>
+            </div>
+
+            <div class="p-1 bg-gray-800 rounded-xl shadow-lg">
+                <div class="flex border-b border-gray-700">
+                    <button class="tab-button flex-1 py-2 text-sm font-semibold text-gray-300 border-b-2 border-indigo-500" data-tab="chat">
+                        <i class="fas fa-comments"></i> Chat
+                    </button>
+                    <button class="tab-button flex-1 py-2 text-sm font-semibold text-gray-500 border-b-2 border-transparent" data-tab="sessions">
+                        <i class="fas fa-chart-line"></i> Phiên
+                    </button>
+                    <button class="tab-button flex-1 py-2 text-sm font-semibold text-gray-500 border-b-2 border-transparent" data-tab="history">
+                        <i class="fas fa-history"></i> Lịch Sử
+                    </button>
+                    <button class="tab-button flex-1 py-2 text-sm font-semibold text-gray-500 border-b-2 border-transparent" data-tab="ranking">
+                        <i class="fas fa-trophy"></i> BXH
+                    </button>
+                </div>
+                <div class="p-4 h-[600px] flex flex-col">
+                    <div id="chat-tab" class="tab-content flex-grow flex flex-col">
+                        <div id="chat-box" class="flex-grow overflow-y-auto mb-4 pr-2 space-y-3"></div>
+                        <form id="chat-form" class="flex">
+                            <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." class="flex-grow px-3 py-2 text-sm text-white bg-gray-700 border border-gray-600 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <button type="submit" class="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700 transition-colors"><i class="fas fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                    <div id="sessions-tab" class="tab-content hidden overflow-y-auto">
+                        <div id="sessions-list" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div id="history-tab" class="tab-content hidden overflow-y-auto">
+                        <ul id="history-list" class="space-y-3"></ul>
+                    </div>
+                    <div id="ranking-tab" class="tab-content hidden overflow-y-auto">
+                         <ul id="ranking-list" class="space-y-3"></ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
