@@ -1,8 +1,8 @@
 const { createClient } = supabase;
 
 // THAY THẾ CÁC GIÁ TRỊ NÀY BẰNG THÔNG TIN CỦA BẠN
-const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // URL của bạn
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Anon key của bạn
+const SUPABASE_URL = 'https://kbsrnizisacobvyupabk.supabase.co'; // URL của bạn
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtic3JuaXppc2Fjb2J2eXVwYWJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODAzODAsImV4cCI6MjA3MTQ1NjM4MH0.qaprOno7D7s7l-pfuz3WqVG7-5yTh_GpGsIp-FkiuTE'; // Anon key của bạn
 
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
