@@ -1,0 +1,25 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+.dice {
+    width: 60px;
+    height: 60px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.5s ease-in-out;
+}
+.dice-rolling {
+    animation: roll 1s infinite;
+}
+@keyframes roll {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #2d3748; }
+::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #718096; }
