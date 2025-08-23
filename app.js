@@ -1,12 +1,10 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// THÔNG TIN KẾT NỐI CỦA BẠN
 const SUPABASE_URL = 'https://kbsrnizisacobvyupabk.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtic3JuaXppc2Fjb2J2eXVwYWJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODAzODAsImV4cCI6MjA3MTQ1NjM4MH0.qaprOno7D7s7l-pfuz3WqVG7-5yTh_GpGsIp-FkiuTE';
 
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// --- DOM Elements ---
 const authScreen = document.getElementById('auth-screen');
 const gameScreen = document.getElementById('game-screen');
 const authError = document.getElementById('auth-error');
@@ -16,7 +14,6 @@ let currentProfile = null;
 let selectedBetAmount = 0;
 let currentSessionId = null;
 
-// --- Auth Logic ---
 const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
@@ -79,7 +76,6 @@ document.getElementById('logout-button').addEventListener('click', () => {
 db.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user || null;
 
-    // This part handles session loading, login, and logout
     if (user) {
         if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
             currentUser = user;
@@ -87,12 +83,11 @@ db.auth.onAuthStateChange(async (event, session) => {
             authScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
         }
-    } else { // User is null
+    } else { 
         currentUser = null;
         currentProfile = null;
         authScreen.classList.remove('hidden');
         gameScreen.classList.add('hidden');
-        // Hủy tất cả các kết nối realtime chỉ khi đăng xuất
         db.removeAllChannels();
     }
 });
@@ -101,7 +96,6 @@ db.auth.onAuthStateChange(async (event, session) => {
 async function initializeGame() {
     if (!currentUser) return;
 
-    // Hàm để lấy profile, sẽ thử lại vài lần nếu chưa có
     const fetchProfile = async (retries = 5) => {
         const { data } = await db.from('profiles').select().eq('id', currentUser.id).single();
         if (data) {
